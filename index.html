@@ -20,11 +20,24 @@
   #bar .brand { margin-left: auto; font-size: 1.4vw; opacity: .8; letter-spacing: .08em; }
   @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: .5; } 100% { transform: scale(1); opacity: 1; } }
   .nobar #bar, .nobar #top { display: none; }
+  #load, #idle { position: absolute; left: 0; right: 0; top: 12.6%; bottom: 20.8%; background: #0b1437; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transition: opacity .5s; }
+  #load .big { font-size: 3vw; font-weight: bold; }
+  #load .sub { font-size: 1.9vw; opacity: .85; margin-top: 1.2vw; }
+  #load .dots span { display: inline-block; width: 1vw; height: 1vw; margin: 2vw .5vw 0; border-radius: 50%; background: #f26522; animation: pulse 1s infinite; }
+  #load .dots span:nth-child(2) { animation-delay: .2s; } #load .dots span:nth-child(3) { animation-delay: .4s; }
+  #idle { opacity: 0; pointer-events: none; }
+  #idle.on { opacity: 1; }
+  #idle .big { font-size: 3vw; font-weight: bold; }
+  #idle .sub { font-size: 1.7vw; opacity: .85; margin: 1vw 0 1.6vw; }
+  #idle .chip { font-size: 1.6vw; border: 2px solid #f26522; border-radius: 2vw; padding: .5vw 1.6vw; margin: .45vw; display: inline-block; }
+  .hide { opacity: 0; pointer-events: none; }
 </style>
 </head>
 <body>
 <div id="stage">
   <div id="frame"><div id="player"></div></div>
+  <div id="load"><div class="big">Preparing your demo</div><div class="sub" id="loadtxt"></div><div class="dots"><span></span><span></span><span></span></div></div>
+  <div id="idle"><div class="big">NEXA is ready for your next question</div><div class="sub">You can ask her to show you:</div><div><span class="chip">How to create an inquiry</span><span class="chip">The dashboard</span><span class="chip">How to track quotations</span><span class="chip">Dangerous cargo</span><span class="chip">Containers and services</span></div></div>
   <div id="top"><span class="logo"><b>GAMA</b> Suite</span><span class="live"><span class="dot"></span>LIVE PRODUCT DEMO</span></div>
   <div id="bar"><span class="dot"></span><span class="txt" id="txt"></span><span class="brand">Presented by NEXA</span></div>
 </div>
@@ -37,6 +50,9 @@
   document.documentElement.style.setProperty('--zoom', q.get('zoom') || '1');
   document.getElementById('txt').textContent = q.get('title') || 'GAMA Suite product demo';
   if (q.get('bar') === '0') document.body.className = 'nobar';
+  document.getElementById('loadtxt').textContent = q.get('title') || '';
+  var IDLE = parseFloat(q.get('idle') || '35');
+  function standby() { document.getElementById('idle').className = 'on'; document.getElementById('txt').textContent = 'Questions and answers'; }
   var tag = document.createElement('script');
   tag.src = 'https://www.youtube.com/iframe_api';
   document.head.appendChild(tag);
@@ -50,9 +66,10 @@
         onReady: function (e) { e.target.mute(); noCaptions(); e.target.seekTo(START, true); e.target.playVideo(); },
         onStateChange: function (e) {
           noCaptions();
+          if (e.data === YT.PlayerState.PLAYING) document.getElementById('load').className = 'hide';
           if (e.data === YT.PlayerState.PLAYING && END > START && !watcher) {
             watcher = setInterval(function () {
-              if (player.getCurrentTime() >= END) { player.pauseVideo(); clearInterval(watcher); }
+              if (player.getCurrentTime() >= END) { player.pauseVideo(); clearInterval(watcher); setTimeout(standby, IDLE * 1000); }
             }, 200);
           }
         }
