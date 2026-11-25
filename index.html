@@ -8,20 +8,25 @@
 <style>
   html, body { margin: 0; height: 100%; background: #0b1437; overflow: hidden; font-family: Arial, Helvetica, sans-serif; }
   #stage { position: absolute; inset: 0; margin: auto; width: 100vw; height: 56.25vw; max-height: 100vh; max-width: 177.78vh; overflow: hidden; background: #000; }
-  #frame { position: absolute; left: 50%; bottom: 0; width: 100%; height: 100%; transform-origin: 50% 100%; transform: translateX(-50%) scale(var(--zoom, 1.11)); }
+  #frame { position: absolute; left: 50%; bottom: 0; width: 100%; height: 100%; transform-origin: 50% 100%; transform: translateX(-50%) scale(var(--zoom, 1)); }
   #frame iframe { width: 100%; height: 100%; border: 0; pointer-events: none; }
-  #bar { position: absolute; left: 0; right: 0; bottom: 0; height: 17%; background: #0b1437; color: #fff; display: flex; align-items: center; padding: 0 3%; box-sizing: border-box; border-top: 4px solid #f26522; }
-  #bar .dot { width: 0.9vw; height: 0.9vw; min-width: 8px; min-height: 8px; border-radius: 50%; background: #f26522; margin-right: 1.2vw; animation: pulse 1.2s infinite; }
-  #bar .txt { font-size: 2.3vw; font-weight: bold; line-height: 1.2; }
-  #bar .brand { margin-left: auto; font-size: 1.5vw; opacity: .8; letter-spacing: .08em; }
+  #top { position: absolute; left: 0; right: 0; top: 0; height: 12.6%; background: #0b1437; color: #fff; display: flex; align-items: center; padding: 0 3%; box-sizing: border-box; border-bottom: 4px solid #f26522; }
+  #top .logo { font-size: 2.6vw; font-weight: bold; letter-spacing: .04em; }
+  #top .logo b { color: #f26522; }
+  #top .live { margin-left: auto; font-size: 1.5vw; display: flex; align-items: center; opacity: .9; letter-spacing: .08em; }
+  #bar { position: absolute; left: 0; right: 0; bottom: 0; height: 20.8%; background: #0b1437; color: #fff; display: flex; align-items: center; padding: 0 3%; box-sizing: border-box; border-top: 4px solid #f26522; }
+  .dot { width: 0.9vw; height: 0.9vw; min-width: 8px; min-height: 8px; border-radius: 50%; background: #f26522; margin-right: 1.2vw; animation: pulse 1.2s infinite; display: inline-block; }
+  #bar .txt { font-size: 2.6vw; font-weight: bold; line-height: 1.2; }
+  #bar .brand { margin-left: auto; font-size: 1.4vw; opacity: .8; letter-spacing: .08em; }
   @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: .5; } 100% { transform: scale(1); opacity: 1; } }
-  .nobar #bar { display: none; }
+  .nobar #bar, .nobar #top { display: none; }
 </style>
 </head>
 <body>
 <div id="stage">
   <div id="frame"><div id="player"></div></div>
-  <div id="bar"><span class="dot"></span><span class="txt" id="txt"></span><span class="brand">GAMA SUITE</span></div>
+  <div id="top"><span class="logo"><b>GAMA</b> Suite</span><span class="live"><span class="dot"></span>LIVE PRODUCT DEMO</span></div>
+  <div id="bar"><span class="dot"></span><span class="txt" id="txt"></span><span class="brand">Presented by NEXA</span></div>
 </div>
 <script>
   var raw = location.search.length > 1 ? location.search : ('?' + location.hash.replace(/^#/, ''));
@@ -29,20 +34,22 @@
   var VIDEO = q.get('v') || '9dWIzGtRWOo';
   var START = parseFloat(q.get('start') || '0');
   var END = parseFloat(q.get('end') || '0');
-  document.documentElement.style.setProperty('--zoom', q.get('zoom') || '1.11');
+  document.documentElement.style.setProperty('--zoom', q.get('zoom') || '1');
   document.getElementById('txt').textContent = q.get('title') || 'GAMA Suite product demo';
   if (q.get('bar') === '0') document.body.className = 'nobar';
   var tag = document.createElement('script');
   tag.src = 'https://www.youtube.com/iframe_api';
   document.head.appendChild(tag);
   var player, watcher;
+  function noCaptions() { try { player.unloadModule('captions'); player.unloadModule('cc'); } catch (x) {} }
   function onYouTubeIframeAPIReady() {
     player = new YT.Player('player', {
       width: '100%', height: '100%', videoId: VIDEO,
-      playerVars: { autoplay: 1, mute: 1, controls: 0, rel: 0, start: Math.floor(START), playsinline: 1, disablekb: 1, modestbranding: 1, iv_load_policy: 3, fs: 0 },
+      playerVars: { autoplay: 1, mute: 1, controls: 0, rel: 0, start: Math.floor(START), playsinline: 1, disablekb: 1, modestbranding: 1, iv_load_policy: 3, fs: 0, cc_load_policy: 0 },
       events: {
-        onReady: function (e) { e.target.mute(); e.target.seekTo(START, true); e.target.playVideo(); },
+        onReady: function (e) { e.target.mute(); noCaptions(); e.target.seekTo(START, true); e.target.playVideo(); },
         onStateChange: function (e) {
+          noCaptions();
           if (e.data === YT.PlayerState.PLAYING && END > START && !watcher) {
             watcher = setInterval(function () {
               if (player.getCurrentTime() >= END) { player.pauseVideo(); clearInterval(watcher); }
