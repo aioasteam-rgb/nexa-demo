@@ -31,11 +31,38 @@
   #idle .sub { font-size: 1.7vw; opacity: .85; margin: 1vw 0 1.6vw; }
   #idle .chip { font-size: 1.6vw; border: 2px solid #f26522; border-radius: 2vw; padding: .5vw 1.6vw; margin: .45vw; display: inline-block; }
   .hide { opacity: 0; pointer-events: none; }
+
+  #scene { position: absolute; left: 0; right: 0; top: 12.6%; bottom: 20.8%; background: #f4f6fb; display: none; align-items: center; justify-content: center; flex-direction: column; color: #0b1437; text-align: center; }
+  .scene-on #scene { display: flex; }
+  .scene-on #frame, .scene-on #load { display: none; }
+  #scene h2 { font-size: 2.5vw; margin: 0 0 1.6vw; }
+  #scene .src { font-size: 1.05vw; color: #5b6478; margin-top: 1.2vw; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  .cards { display: flex; align-items: stretch; }
+  .pc { background: #fff; border-radius: 1.2vw; border-top: .6vw solid #f26522; width: 25vw; padding: 1.4vw 1.6vw; margin: 0 1vw; text-align: left; opacity: 0; transform: translateY(3vw); animation: rise .7s forwards; box-shadow: 0 .4vw 1.4vw rgba(11,20,55,.12); }
+  .pc:nth-child(1) { animation-delay: .4s; } .pc:nth-child(2) { animation-delay: 1.8s; } .pc:nth-child(3) { animation-delay: 3.2s; }
+  .pc .who { font-size: 1.1vw; color: #f26522; font-weight: bold; letter-spacing: .08em; }
+  .pc h3 { font-size: 1.9vw; margin: .3vw 0 .8vw; }
+  .pc div.li { font-size: 1.35vw; margin: .35vw 0; }
+  .link { font-size: 1.5vw; font-weight: bold; margin-top: 1.6vw; opacity: 0; animation: rise .7s 4.6s forwards; }
+  .fl { display: flex; align-items: center; flex-wrap: wrap; justify-content: center; max-width: 92vw; }
+  .nd { font-size: 1.45vw; font-weight: bold; background: #fff; border: .22vw solid #0b1437; border-radius: 1vw; padding: 1vw 1.2vw; margin: .7vw .2vw; opacity: 0; transform: scale(.7); animation: rise .5s forwards, lit 12s infinite; }
+  .nd small { display: block; font-weight: normal; font-size: 1.05vw; color: #5b6478; margin-top: .3vw; }
+  .ar { font-size: 2vw; color: #f26522; margin: 0 .5vw; opacity: 0; animation: rise .4s forwards; }
+  @keyframes lit { 0%, 12% { background: #f26522; color: #fff; border-color: #f26522; } 13%, 100% { background: #fff; color: #0b1437; border-color: #0b1437; } }
+  .bars { display: flex; align-items: flex-end; height: 21vw; }
+  .bw { margin: 0 4vw; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .bv { font-size: 2.4vw; font-weight: bold; margin-bottom: .5vw; opacity: 0; animation: rise .5s forwards; }
+  .bb { width: 11vw; height: 0; border-radius: .8vw .8vw 0 0; }
+  @keyframes g1 { to { height: 15vw; } } @keyframes g2 { to { height: 1.8vw; } }
+  .b1 { background: #9aa3b8; animation: g1 1.4s .4s forwards; } .b2 { background: #f26522; animation: g2 1.2s 2.4s forwards; }
+  .bl { font-size: 1.4vw; margin-top: .6vw; font-weight: bold; }
 </style>
 </head>
 <body>
 <div id="stage">
   <div id="frame"><div id="player"></div></div>
+  <div id="scene"></div>
   <div id="load"><div class="big">Preparing your demo</div><div class="sub" id="loadtxt"></div><div class="dots"><span></span><span></span><span></span></div></div>
   <div id="idle"><div class="big">Nova is ready for your next question</div><div class="sub">You can ask her to show you:</div><div><span class="chip">How to create an inquiry</span><span class="chip">The dashboard</span><span class="chip">How to track quotations</span><span class="chip">Dangerous cargo</span><span class="chip">Containers and services</span></div></div>
   <div id="top"><span class="logo"><b>GAMA</b> Suite</span><span class="live"><span class="dot"></span>LIVE PRODUCT DEMO</span></div>
@@ -53,9 +80,36 @@
   document.getElementById('loadtxt').textContent = q.get('title') || '';
   var IDLE = parseFloat(q.get('idle') || '35');
   function standby() { document.getElementById('idle').className = 'on'; document.getElementById('txt').textContent = 'Questions and answers'; }
-  var tag = document.createElement('script');
-  tag.src = 'https://www.youtube.com/iframe_api';
-  document.head.appendChild(tag);
+  var VIEW = q.get('view');
+  var SCENES = {
+    portals: '<h2>One platform, three connected portals</h2><div class="cards">' +
+      '<div class="pc"><div class="who">FOR YOUR CUSTOMERS</div><h3>Customer Portal</h3><div class="li">Send inquiries and book</div><div class="li">Track shipments</div><div class="li">Documents and invoices</div></div>' +
+      '<div class="pc"><div class="who">FOR YOUR SALES TEAM</div><h3>CRM Portal</h3><div class="li">Leads and customers</div><div class="li">Deals and follow-ups</div><div class="li">Tasks and reports</div></div>' +
+      '<div class="pc"><div class="who">FOR YOUR OPERATIONS</div><h3>Admin Portal</h3><div class="li">Inquiries and quotations</div><div class="li">Bookings and shipments</div><div class="li">BL, finance, analytics</div></div>' +
+      '</div><div class="link">The same data flows through all three. Nothing is typed twice.</div>',
+    flow: function () {
+      var n = [['Inquiry', 'customer asks'], ['Vendor rates', 'request and receive'], ['Quotation', 'sent to customer'], ['Booking', 'confirmed'], ['Shipment', 'tracked live'], ['Documents', 'BL and more'], ['Invoice', 'billed']];
+      var h = '<h2>From inquiry to invoice, in one flow</h2><div class="fl">';
+      for (var i = 0; i < n.length; i++) {
+        var d = (0.4 + i * 0.9).toFixed(1);
+        h += '<div class="nd" style="animation-delay:' + d + 's,' + (7 + i * 1.5).toFixed(1) + 's">' + n[i][0] + '<small>' + n[i][1] + '</small></div>';
+        if (i < n.length - 1) h += '<div class="ar" style="animation-delay:' + (0.8 + i * 0.9).toFixed(1) + 's">&#10140;</div>';
+      }
+      return h + '</div>';
+    },
+    time: '<h2>Time to quote and document one shipment</h2><div class="bars">' +
+      '<div class="bw"><div class="bv" style="animation-delay:1.8s">35 min</div><div class="bb b1"></div><div class="bl">Before</div></div>' +
+      '<div class="bw"><div class="bv" style="animation-delay:3.6s;color:#f26522">about 4 min</div><div class="bb b2"></div><div class="bl">With GAMA Suite</div></div>' +
+      '</div><div class="src">Customer result published on gamasuite.com. Results depend on each company and workflow.</div>'
+  };
+  if (VIEW && SCENES[VIEW]) {
+    document.body.classList.add('scene-on');
+    document.getElementById('scene').innerHTML = typeof SCENES[VIEW] === 'function' ? SCENES[VIEW]() : SCENES[VIEW];
+  } else {
+    var tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+  }
   var player, watcher;
   function noCaptions() { try { player.unloadModule('captions'); player.unloadModule('cc'); } catch (x) {} }
   function onYouTubeIframeAPIReady() {
